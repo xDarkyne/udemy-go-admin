@@ -9,36 +9,36 @@ import (
 	"github.com/xdarkyne/udemy/util"
 )
 
-func WithPermission(c *fiber.Ctx) error {
-	user := util.GetUser(c)
+func WithPermission(page string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		user := util.GetUser(c)
 
-	page := c.Locals("page").(string)
+		db.ORM.Preload("Permissions").Find(&user.Role)
 
-	db.ORM.Preload("Permissions").Find(&user.Role)
+		hasRole := false
 
-	hasRole := false
-
-	if c.Method() == "GET" {
-		for _, permission := range user.Role.Permissions {
-			if permission.Name == "view_"+page || permission.Name == "edit_"+page {
-				hasRole = true
+		if c.Method() == "GET" {
+			for _, permission := range user.Role.Permissions {
+				if permission.Name == "view_"+page || permission.Name == "edit_"+page {
+					hasRole = true
+				}
+			}
+		} else {
+			for _, permission := range user.Role.Permissions {
+				if permission.Name == "edit_"+page {
+					hasRole = true
+				}
 			}
 		}
-	} else {
-		for _, permission := range user.Role.Permissions {
-			if permission.Name == "edit_"+page {
-				hasRole = true
-			}
+
+		if !hasRole {
+			return c.Status(http.StatusUnauthorized).JSON(controllers.Response{
+				Message: http.StatusText(http.StatusUnauthorized),
+				Success: false,
+				Status:  http.StatusUnauthorized,
+			})
 		}
-	}
 
-	if !hasRole {
-		return c.Status(http.StatusUnauthorized).JSON(controllers.Response{
-			Message: http.StatusText(http.StatusUnauthorized),
-			Success: false,
-			Status:  http.StatusUnauthorized,
-		})
+		return c.Next()
 	}
-
-	return c.Next()
 }
