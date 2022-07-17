@@ -1,0 +1,5 @@
+data/
+tmp/
+backend/assets/csv/*.csv
+backend/assets/uploads/*.jpg
+.env

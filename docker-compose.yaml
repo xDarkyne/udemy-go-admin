@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  udemy-database:
+    container_name: udemy-database
+    image: postgres:alpine
+    environment:
+    - POSTGRES_PASSWORD=${DB_PASS}
+    - POSTGRES_USER=${DB_USER}
+    - POSTGRES_DB=${DB_NAME}
+    restart: unless-stopped
+    volumes:
+    - ./data/db:/var/lib/postgresql/data
+    ports:
+    - 5432:5432
